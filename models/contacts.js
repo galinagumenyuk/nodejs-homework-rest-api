@@ -1,69 +1,96 @@
-const fs = require("fs/promises");
-const path = require("path");
+const Joi = require("joi");
+const { Schema, model } = require("mongoose");
 
-const filePath = path.join(__dirname, "/contacts.json");
+const contactSchema = Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Set name for contact"],
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { versionKey: false, timestamps: true }
+);
+
+const joiSchema = Joi.object({
+  name: Joi.string()
+    .pattern(/^[a-zA-Zа-яА-ЯёЁ\s]+$/)
+    .min(2)
+    .max(20)
+    .required(),
+  phone: Joi.string()
+    .min(5)
+    .pattern(/^[0-9\s]+$/)
+    .required(),
+  email: Joi.string()
+    .required()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net", "uk", "org"] },
+    }),
+  favorite: Joi.bool(),
+});
+
+const joiStatusSchema = Joi.object({
+  favorite: Joi.bool().required(),
+});
+
+const Contact = model("contact", contactSchema);
 
 const listContacts = async () => {
-  const data = await fs.readFile(filePath);
-  const list = JSON.parse(data);
+  const list = await Contact.find({});
   return list;
 };
 
 const getContactById = async (contactId) => {
-  const list = await listContacts();
-  const result = list.filter(
-    (item) => parseInt(item.id) === parseInt(contactId)
-  );
+  const result = Contact.findById(contactId);
   return result;
 };
 
-const removeContact = async (contactId) => {
-  const list = await listContacts();
-  const idx = list.findIndex(
-    (item) => parseInt(item.id) === parseInt(contactId)
-  );
-  if (idx === -1) {
-    return null;
-  }
-  const [removeContact] = list.splice(idx, 1);
-  await fs.writeFile(filePath, JSON.stringify(list));
-  return removeContact;
-};
-
 const addContact = async (body) => {
-  const list = await listContacts();
-  const { name, email, phone } = body;
-  const newContact = {
-    id: new Date().getTime().toString(),
-    name,
-    email,
-    phone,
-  };
-  list.push(newContact);
-  await fs.writeFile(filePath, JSON.stringify(list));
+  const newContact = await Contact.create(body);
   return newContact;
 };
 
+const removeContact = async (contactId) => {
+  const removeContact = Contact.findByIdAndRemove(contactId);
+  return removeContact;
+};
+
 const updateContact = async (contactId, body) => {
-  const list = await listContacts();
-  const { name, email, phone } = body;
-  let updContact = null;
-  list.forEach((item) => {
-    if (item.id === contactId) {
-      item.name = name;
-      item.email = email;
-      item.phone = phone;
-      updContact = item;
-    }
+  const updContact = await Contact.findByIdAndUpdate(contactId, body, {
+    new: true,
   });
-  await fs.writeFile(filePath, JSON.stringify(list));
   return updContact;
 };
 
+const updateStatusContact = async (contactId, favorite) => {
+  const updStatusContact = await Contact.findByIdAndUpdate(
+    contactId,
+    { favorite },
+    {
+      new: true,
+    }
+  );
+  return updStatusContact;
+};
+
 module.exports = {
+  joiSchema,
+  joiStatusSchema,
   listContacts,
   getContactById,
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 };
