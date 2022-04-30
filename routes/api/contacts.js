@@ -26,15 +26,15 @@ router.get("/:contactId", async (req, res, next) => {
 });
 
 router.post("/", async (req, res, next) => {
-  // const validationResult = joiSchema.validate(req.body);
-  // if (validationResult.error) {
-  //   return res.status(400).json({
-  //     status: validationResult.error.details.map((x) => x.message),
-  //     message: `missing required ${validationResult.error.details.map(
-  //       (x) => x.context.key
-  //     )} field`,
-  //   });
-  // }
+  const validationResult = joiSchema.validate(req.body);
+  if (validationResult.error) {
+    return res.status(400).json({
+      status: validationResult.error.details.map((x) => x.message),
+      message: `missing required ${validationResult.error.details.map(
+        (x) => x.context.key
+      )} field`,
+    });
+  }
 
   const newContact = await addContact(req.body);
   res.status(201).json({ newContact });
@@ -50,15 +50,15 @@ router.delete("/:contactId", async (req, res, next) => {
 });
 
 router.put("/:contactId", async (req, res, next) => {
-  // const validationResult = joiSchema.validate(req.body);
-  // if (validationResult.error) {
-  //   return res.status(400).json({
-  //     status: validationResult.error.details.map((x) => x.message),
-  //     message: `missing required ${validationResult.error.details.map(
-  //       (x) => x.context.key
-  //     )} field`,
-  //   });
-  // }
+  const validationResult = joiSchema.validate(req.body);
+  if (validationResult.error) {
+    return res.status(400).json({
+      status: validationResult.error.details.map((x) => x.message),
+      message: `missing required ${validationResult.error.details.map(
+        (x) => x.context.key
+      )} field`,
+    });
+  }
   const updContact = await updateContact(req.params.contactId, req.body);
 
   res.status(200).json({ updContact });
