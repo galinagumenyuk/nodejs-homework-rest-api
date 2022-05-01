@@ -2,14 +2,14 @@ const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 
 const authSchema = Schema({
-  password: {
-    type: String,
-    required: [true, "Password is required"],
-  },
   email: {
     type: String,
     required: [true, "Email is required"],
     unique: true,
+  },
+  password: {
+    type: String,
+    required: [true, "Password is required"],
   },
   subscription: {
     type: String,
@@ -29,6 +29,22 @@ const joiSchema = Joi.object({
 
 const User = model("user", authSchema);
 
+const register = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (user) {
+    return res.status(409).json({
+      Status: "409 Conflict",
+      ResponseBody: {
+        message: "Email in use",
+      },
+    });
+  }
+  const result = await User.create({ email, password });
+  return result;
+};
+
 module.exports = {
   joiSchema,
+  register,
 };
