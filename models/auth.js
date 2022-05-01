@@ -1,6 +1,9 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const { SECRET_KEY } = process.env;
 
 const authSchema = Schema({
   email: {
@@ -46,7 +49,36 @@ const register = async (req, res) => {
   return result;
 };
 
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(401).json({
+      Status: "401 Unauthorized",
+      ResponseBody: {
+        message: "Email or password is wrong",
+      },
+    });
+  }
+  const passCompare = bcrypt.compareSync(password, user.password);
+  if (!passCompare) {
+    return res.status(401).json({
+      Status: "401 Unauthorized",
+      ResponseBody: {
+        message: "Email or password is wrong",
+      },
+    });
+  }
+
+  const payload = {
+    id: user._id,
+  };
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "24h" });
+  return { token, user };
+};
+
 module.exports = {
   joiSchema,
   register,
+  login,
 };
