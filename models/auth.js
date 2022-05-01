@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
+const bcrypt = require("bcryptjs");
 
 const authSchema = Schema({
   email: {
@@ -40,7 +41,8 @@ const register = async (req, res) => {
       },
     });
   }
-  const result = await User.create({ email, password });
+  const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+  const result = await User.create({ email, password: hashPassword });
   return result;
 };
 
