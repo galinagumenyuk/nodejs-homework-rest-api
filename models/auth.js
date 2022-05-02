@@ -81,4 +81,5 @@ module.exports = {
   joiSchema,
   register,
   login,
+  User,
 };
