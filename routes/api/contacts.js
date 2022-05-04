@@ -12,8 +12,10 @@ const {
   updateStatusContact,
 } = require("../../models/contacts");
 
-router.get("/", async (req, res, next) => {
-  const contacts = await listContacts();
+const auth = require("../../middlewares/auth");
+
+router.get("/", auth, async (req, res, next) => {
+  const contacts = await listContacts(req);
   res.status(200).json({ contacts });
 });
 
@@ -25,7 +27,7 @@ router.get("/:contactId", async (req, res, next) => {
   res.status(200).json({ contact });
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", auth, async (req, res, next) => {
   const validationResult = joiSchema.validate(req.body);
   if (validationResult.error) {
     return res.status(400).json({
@@ -36,7 +38,7 @@ router.post("/", async (req, res, next) => {
     });
   }
 
-  const newContact = await addContact(req.body);
+  const newContact = await addContact(req);
   res.status(201).json({ newContact });
 });
 
