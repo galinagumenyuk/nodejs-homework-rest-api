@@ -53,10 +53,12 @@ const Contact = model("contact", contactSchema);
 
 const listContacts = async (req, res) => {
   const { _id } = req.user._conditions;
-  const list = await Contact.find({ owner: _id }).populate(
-    "owner",
-    "_id email"
-  );
+  const { page = 1, limit = 5 } = req.query;
+  const skip = (page - 1) * limit;
+  const list = await Contact.find({ owner: _id }, "", {
+    skip,
+    limit: Number(limit),
+  }).populate("owner", "_id email");
   return list;
 };
 
