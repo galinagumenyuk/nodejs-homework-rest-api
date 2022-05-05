@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { joiSchema, register, login } = require("../../models/auth");
+const { joiSchema, register, login, logout } = require("../../models/auth");
+const auth = require("../../middlewares/auth");
 
 router.post("/signup", async (req, res, next) => {
   const validationResult = joiSchema.validate(req.body);
@@ -40,6 +41,13 @@ router.post("/login", async (req, res, next) => {
         subscription: authUser.user.subscription,
       },
     },
+  });
+});
+
+router.get("/logout", auth, async (req, res, next) => {
+  await logout(req);
+  res.status(204).json({
+    Status: "204 No Content",
   });
 });
 

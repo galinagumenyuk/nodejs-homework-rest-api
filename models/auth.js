@@ -74,12 +74,27 @@ const login = async (req, res) => {
     id: user._id,
   };
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "24h" });
+  await User.findByIdAndUpdate(user._id, { token });
   return { token, user };
+};
+
+const logout = async (req, res) => {
+  const { _id } = req.user._conditions;
+  if (!_id) {
+    return res.status(401).json({
+      Status: "401 Unauthorized",
+      ResponseBody: {
+        message: "Not authorized",
+      },
+    });
+  }
+  await User.findByIdAndUpdate(_id, { token: null });
 };
 
 module.exports = {
   joiSchema,
   register,
   login,
+  logout,
   User,
 };
