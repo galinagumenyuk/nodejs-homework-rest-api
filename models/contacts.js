@@ -17,6 +17,11 @@ const contactSchema = Schema(
       type: Boolean,
       default: false,
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
   },
   { versionKey: false, timestamps: true }
 );
@@ -46,8 +51,14 @@ const joiStatusSchema = Joi.object({
 
 const Contact = model("contact", contactSchema);
 
-const listContacts = async () => {
-  const list = await Contact.find({});
+const listContacts = async (req, res) => {
+  const { _id } = req.user._conditions;
+  const { page = 1, limit = 5 } = req.query;
+  const skip = (page - 1) * limit;
+  const list = await Contact.find({ owner: _id }, "", {
+    skip,
+    limit: Number(limit),
+  }).populate("owner", "_id email");
   return list;
 };
 
@@ -56,8 +67,9 @@ const getContactById = async (contactId) => {
   return result;
 };
 
-const addContact = async (body) => {
-  const newContact = await Contact.create(body);
+const addContact = async (req, res) => {
+  const { _id } = req.user._conditions;
+  const newContact = await Contact.create({ ...req.body, owner: _id });
   return newContact;
 };
 
