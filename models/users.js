@@ -1,6 +1,7 @@
 const { User } = require("./auth");
 const path = require("path");
 const fs = require("fs/promises");
+const Jimp = require("jimp");
 
 const getCurrent = async (req, res) => {
   const curUser = req.user;
@@ -20,8 +21,12 @@ const updateAvatar = async (req, res) => {
       "avatars",
       originalname
     );
-    await fs.rename(tempUpload, resultUpload);
     const avatarURL = path.join("public", "avatars", originalname);
+    await fs.rename(tempUpload, resultUpload);
+
+    Jimp.read(resultUpload).then((image) => {
+      image.resize(250, 250).write(resultUpload);
+    });
     await User.findByIdAndUpdate(_id, { avatarURL });
     return avatarURL;
   } catch (error) {
