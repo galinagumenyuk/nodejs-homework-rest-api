@@ -52,7 +52,7 @@ const joiStatusSchema = Joi.object({
 const Contact = model("contact", contactSchema);
 
 const listContacts = async (req, res) => {
-  const { _id } = req.user._conditions;
+  const { _id } = req.user;
   const { page = 1, limit = 5 } = req.query;
   const skip = (page - 1) * limit;
   const list = await Contact.find({ owner: _id }, "", {
@@ -68,7 +68,7 @@ const getContactById = async (contactId) => {
 };
 
 const addContact = async (req, res) => {
-  const { _id } = req.user._conditions;
+  const { _id } = req.user;
   const newContact = await Contact.create({ ...req.body, owner: _id });
   return newContact;
 };
