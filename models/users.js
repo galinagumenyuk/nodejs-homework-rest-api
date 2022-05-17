@@ -40,4 +40,22 @@ const updateAvatar = async (req, res) => {
   }
 };
 
-module.exports = { getCurrent, updateAvatar };
+const verifyEmail = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    res.status(404).json({
+      Status: "404 Not Found",
+      ResponseBody: {
+        message: "User not found",
+      },
+    });
+  }
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: null,
+  });
+  return user;
+};
+
+module.exports = { getCurrent, updateAvatar, verifyEmail };

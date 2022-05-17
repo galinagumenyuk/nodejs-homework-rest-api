@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getCurrent, updateAvatar } = require("../../models/users");
+const { getCurrent, updateAvatar, verifyEmail } = require("../../models/users");
 const auth = require("../../middlewares/auth");
 const upload = require("../../middlewares/upload");
 
@@ -29,5 +29,15 @@ router.patch(
     });
   }
 );
+
+router.get("/verify/:verificationToken", async (req, res) => {
+  await verifyEmail(req, res);
+  res.status(200).json({
+    Status: "200 OK",
+    ResponseBody: {
+      message: "Verification successful",
+    },
+  });
+});
 
 module.exports = router;

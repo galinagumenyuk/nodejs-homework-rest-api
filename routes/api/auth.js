@@ -19,6 +19,7 @@ router.post("/signup", async (req, res, next) => {
         email: newUser.email,
         subscription: newUser.subscription,
         avatar: newUser.avatarURL,
+        verificationToken: newUser.verificationToken,
       },
     },
   });
