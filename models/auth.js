@@ -2,6 +2,7 @@ const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
 
 const { SECRET_KEY } = process.env;
 
@@ -24,6 +25,10 @@ const authSchema = Schema({
     type: String,
     default: null,
   },
+  avatarURL: {
+    type: String,
+    required: true,
+  },
 });
 
 const joiSchema = Joi.object({
@@ -44,8 +49,13 @@ const register = async (req, res) => {
       },
     });
   }
+  const avatarURL = gravatar.url(email);
   const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-  const result = await User.create({ email, password: hashPassword });
+  const result = await User.create({
+    email,
+    password: hashPassword,
+    avatarURL,
+  });
   return result;
 };
 
@@ -73,22 +83,13 @@ const login = async (req, res) => {
   const payload = {
     id: user._id,
   };
-  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "24h" });
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "48h" });
   await User.findByIdAndUpdate(user._id, { token });
   return { token, user };
 };
 
 const logout = async (req, res) => {
-  const { _id } = req.user._conditions;
-  if (!_id) {
-    return res.status(401).json({
-      Status: "401 Unauthorized",
-      ResponseBody: {
-        message: "Not authorized",
-      },
-    });
-  }
-  await User.findByIdAndUpdate(_id, { token: null });
+  await User.findByIdAndUpdate(req.user._id, { token: null });
 };
 
 module.exports = {
