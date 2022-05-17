@@ -2,6 +2,12 @@ const { User } = require("./auth");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
+const Joi = require("joi");
+const { sendEmail } = require("../helpers/sendEmail");
+
+const joiSchema = Joi.object({
+  email: Joi.string().required(),
+});
 
 const getCurrent = async (req, res) => {
   const curUser = req.user;
@@ -58,4 +64,29 @@ const verifyEmail = async (req, res) => {
   return user;
 };
 
-module.exports = { getCurrent, updateAvatar, verifyEmail };
+const secondVerifyEmail = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (user.verify) {
+    return res.status(400).json({
+      Status: "400 Bad Request",
+      ResponseBody: {
+        message: "Verification has already been passed",
+      },
+    });
+  }
+  const msg = {
+    to: email,
+    subject: "Confirm your email",
+    html: `<a target="_blank" href="http://localhost:3000/api//users/verify/${user.verificationToken}">Confirm email </a>`,
+  };
+  await sendEmail(msg);
+};
+
+module.exports = {
+  getCurrent,
+  updateAvatar,
+  verifyEmail,
+  secondVerifyEmail,
+  joiSchema,
+};
